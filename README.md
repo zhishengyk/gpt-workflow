@@ -1,4 +1,4 @@
-# Luna -> Sol -> Luna workflow export
+# GPT-6 Luna and Sol coding workflow
 
 This package contains only the portable workflow configuration. It intentionally
 excludes authentication, sessions, MCP servers, trusted-project entries, logs,
@@ -7,8 +7,9 @@ notifications, plugins, caches, host details, and credentials.
 ## Files
 
 - `AGENTS.workflow.md`: global routing instructions to merge into `AGENTS.md`.
-- `agents/sol-reasoner.toml`: the global read-only Sol custom agent.
-- `config-snippet.toml`: the minimal Luna/max and multi-agent settings to merge.
+- `agents/sol-coder.toml`: the GPT-6 Sol implementation agent for large code tasks.
+- `agents/sol-reasoner.toml`: the read-only GPT-6 Sol agent for non-code questions.
+- `config-snippet.toml`: the minimal GPT-6 Luna/max and multi-agent settings to merge.
 
 ## Windows installation
 
@@ -18,8 +19,7 @@ notifications, plugins, caches, host details, and credentials.
    `CODEX_HOME\config.toml`.
 3. Append the contents of `AGENTS.workflow.md` to the existing global
    `CODEX_HOME\AGENTS.md`. Merge; do not overwrite unrelated instructions.
-4. Copy `agents\sol-reasoner.toml` to
-   `CODEX_HOME\agents\sol-reasoner.toml`.
+4. Copy both TOML files from `agents\` to `CODEX_HOME\agents\`.
 5. Merge `config-snippet.toml` into `CODEX_HOME\config.toml`:
    keep `model` and `model_reasoning_effort` at TOML root scope, and merge
    `enabled = true` into an existing `[agents]` table instead of creating a
@@ -32,20 +32,24 @@ notifications, plugins, caches, host details, and credentials.
 ## Requirements and precedence
 
 - The account and Codex client must support custom agents and have access to
-  `gpt-5.6-luna` and `gpt-5.6-sol` at `max` reasoning effort.
+  `gpt-6-luna` and `gpt-6-sol` at `max` reasoning effort.
 - Authentication is local to the destination machine and is not included.
 - Project or nested `AGENTS.md`/`AGENTS.override.md` instructions load after
   global instructions and may override conflicting guidance.
-- Fresh-agent, wait-before-execution, one-Sol, and fail-closed behavior are
-  instruction-enforced rather than an operating-system routing gate.
-- Avoid elevated parent-session permission overrides if strict read-only Sol
-  behavior matters; live parent permissions can take precedence.
+- Small, clear code changes stay in Luna. Large or uncertain code changes use
+  the writable `sol_coder`; Luna reviews and verifies its work. Non-code
+  questions use the read-only `sol_reasoner`.
+- Fresh-agent, one-Sol-at-a-time, and fail-closed behavior are
+  instruction-enforced. The `sol_coder` inherits the active parent permission
+  mode; its configured `workspace-write` mode does not grant permissions that
+  the parent session lacks.
 
 ## Smoke test
 
-After restarting Codex, create a new task and ask a simple question. Confirm
-that a fresh `sol_reasoner` appears before Luna answers. Then request a tiny
-edit and confirm Luna waits for Sol, performs the edit itself, and runs the
-appropriate validation.
+After restarting Codex, verify all three routes: a non-code question starts a
+fresh `sol_reasoner`; a tiny localized code change stays in Luna; and a complex
+cross-module coding task starts `sol_coder`, after which Luna reviews and
+verifies the diff.
 
-To bypass Sol for one request, explicitly say: `Do not use Sol for this request.`
+For a task that would normally use Sol, explicitly say: `Do not use Sol for
+this request.`

@@ -1,5 +1,5 @@
 # Merge these root-level keys into CODEX_HOME/config.toml.
-model = "gpt-5.6-luna"
+model = "gpt-6-luna"
 model_reasoning_effort = "max"
 
 # Merge this key into the existing [agents] table, if one exists.
